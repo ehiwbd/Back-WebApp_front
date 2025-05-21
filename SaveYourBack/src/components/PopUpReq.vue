@@ -1,6 +1,4 @@
 <script>
-import { onMounted } from 'vue'
-let k = 0
 export default {
 	name: 'PopUpReq',
 	data() {
@@ -8,15 +6,56 @@ export default {
 			characterName: '',
 		}
 	},
+
+	async mounted() {
+		const tg_user = window.Telegram.WebApp.initDataUnsafe?.user
+		if (!tg_user?.id) return
+
+		const response = await fetch(
+			`http://127.0.0.1:8080/api/users/${tg_user.id}`
+		)
+
+		if (response.status === 404) {
+			// Показываем popup
+			const popupContainer =
+				document.getElementsByClassName('popup-container')[0]
+			popupContainer.style.visibility = 'visible'
+
+			// Устанавливаем фокус на input
+			const popupInput = document.getElementsByClassName('popup-input')[0]
+			if (popupInput) {
+				// Небольшая задержка для гарантии применения стилей
+				setTimeout(() => popupInput.focus(), 50)
+			}
+		}
+	},
+
 	methods: {
-		createCharacter() {
+		async createCharacter() {
+			if (!this.characterName) {
+				alert('Введите имя персонажа')
+				return
+			}
+
+			const tg_user = window.Telegram.WebApp.initDataUnsafe?.user
+			if (!tg_user?.id) return // Проверяем наличие ID
+			// Если пользователь не найден (404), создаём его
+
+			await fetch(`http://127.0.0.1:8080/api/users/`, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({
+					tg_id: tg_user.id,
+					timer: 0,
+					experience: 0,
+					coins: 10,
+					username: this.characterName
+				}),
+			})
+
 			document.getElementsByClassName('popup-container')[0].style.visibility =
 				'hidden'
-			k = 1
 		},
-	},
-	mounted() {
-		if (k == 1) this.createCharacter()
 	},
 }
 </script>
@@ -90,7 +129,7 @@ export default {
 }
 
 .popup-container {
-	visibility: visible;
+	visibility: hidden;
 	z-index: 3;
 	position: absolute;
 	top: 0;

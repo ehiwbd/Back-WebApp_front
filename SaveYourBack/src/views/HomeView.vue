@@ -1,14 +1,11 @@
 <template>
 	<div class="home-container">
 		<PopUpReq />
-		<img
-			src="../assets/goodState.png"
-			alt="Фон главной страницы"
-			class="home-image"
-		/>
+		<img src="../assets/Japan.png" class="home-image" /><img />
 		<div class="progress-container">
 			<div class="progress-icon">
 				<span class="progress-icon-text">Lvl</span>
+				<span class="progress-icon-value">{{ this.value }}</span>
 			</div>
 			<div class="progress-bar">
 				<div
@@ -29,8 +26,8 @@
 					>
 						<path
 							d="M44.5 22.25V44.5L59.3334 51.9167M81.5834 44.5C81.5834 64.9806 64.9806 81.5833 44.5 81.5833C24.0195 81.5833 7.41669 64.9806 7.41669 44.5C7.41669 24.0194 24.0195 7.41667 44.5 7.41667C64.9806 7.41667 81.5834 24.0194 81.5834 44.5Z"
-							stroke="#F19EDC"
-							stroke-width="4"
+							stroke="#81C784"
+							stroke-width="8"
 							stroke-linecap="round"
 							stroke-linejoin="round"
 						/>
@@ -43,35 +40,38 @@
 
 <script>
 import PopUpReq from '../components/PopUpReq.vue'
-let z = 0
 
 export default {
 	name: 'HomeView',
 	data() {
 		return {
 			Progress: { progress: 0 }, // Начинаем с 0
+			value: 5,
 		}
 	},
 	components: {
 		PopUpReq,
 	},
+
 	async mounted() {
-		const tg_user = window.Telegram.WebApp.initDataUnsafe?.user
-		if (z !== 1) {
-			await fetch(`http://127.0.0.1:8000/api/users/`, {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json',
-				},
-				body: JSON.stringify({ tg_id: tg_user.id, timer: 0 }),
-			})
-			z++
-		}
-	},
-	mounted() {
 		// Анимируем прогресс после загрузки компонента
-		setTimeout(() => {
-			this.Progress.progress = 75
+		setTimeout(async () => {
+			try {
+				const tg_user = window.Telegram.WebApp.initDataUnsafe?.user
+				if (!tg_user?.id) return
+				const response = await fetch(
+					`http://127.0.0.1:8080/api/users/${tg_user.id}`
+				)
+				const data = await response.json()
+				while (data.experience >= 100) {
+					data.experience -= 100
+					data.level_cnt += 1
+				}
+				this.Progress.progress = data.experience
+				this.value = data.level_cnt
+			} catch (error) {
+				console.error(error) // Use console.error for errors
+			}
 		}, 200) // Небольшая задержка для гарантии применения начальных стилей
 	},
 }
@@ -155,6 +155,8 @@ export default {
 	display: flex;
 	align-items: center;
 	justify-content: center;
+	display: flex;
+	flex-direction: column;
 }
 
 .progress-icon-text {

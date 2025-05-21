@@ -44,29 +44,50 @@ export default {
 	data() {
 		return {
 			currentTimer: 0,
+			user: {
+				id: '',
+				name: '',
+				timer: '',
+				coins: '',
+				experience: '',
+			},
 		}
 	},
 
 	methods: {
 		setTimer(minutes) {
 			this.currentTimer = minutes
-			console.log(this.currentTimer)
 			this.CreateTimer(this.currentTimer)
 		},
 
 		async CreateTimer(minutes) {
 			if (minutes <= 0) return
-
 			try {
 				const tg_user = window.Telegram.WebApp.initDataUnsafe?.user
-				const response = await fetch(`http://127.0.0.1:8000/api/users/`, {
+				const response = await fetch(
+					`http://127.0.0.1:8080/api/users/${tg_user.id}`
+				)
+				const data = await response.json()
+				this.user.id = tg_user.id
+				this.user.name = tg_user.username
+				this.user.timer = data.timer
+				this.user.coins = data.coins
+				this.user.experience = data.experience
+				console.log(minutes)
+				await fetch(`http://127.0.0.1:8080/api/users/`, {
 					method: 'POST',
 					headers: {
 						'Content-Type': 'application/json',
 					},
-					body: JSON.stringify({ tg_id: tg_user.id, timer: minutes }),
+					body: JSON.stringify({
+						tg_id: tg_user.id,
+						timer: minutes,
+						coins: data.coins,
+						experience: data.experience,
+						username: tg_user.username,
+					}),
 				})
-			} catch (eror) {
+			} catch (error) {
 				console.log('Ошибка', error)
 			}
 		},

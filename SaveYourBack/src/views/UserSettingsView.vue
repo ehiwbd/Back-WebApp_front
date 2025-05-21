@@ -6,20 +6,15 @@
 		</div>
 		<ul class="userset-info-blocks">
 			<li class="userset-info-block">
-				<span class="userset-text">Ваше имя:{{ user.name }}</span>
-			</li>
-			<li class="userset-info-block">
-				<router-link to="/progress">
-					<span class="userset-text"
-						>Ваш уровень:{{ user.name }}</span
-					></router-link
-				>
+				<span class="userset-text">Ваше имя:</span>
+				<span class="userset-text">{{ user.name }}</span>
 			</li>
 			<li class="userset-info-block">
 				<router-link to="/timeset" class="userset-text"
-					><span class="userset-text"
-						>таймер: {{ user.timer }}</span
-					></router-link
+					><span class="userset-text giga"
+						>Таймер:
+						<span class="userset-text">{{ user.timer }} минут</span>
+					</span></router-link
 				>
 			</li>
 		</ul>
@@ -107,14 +102,14 @@ export default {
 		async fetchProfile() {
 			try {
 				const tg_user = window.Telegram.WebApp.initDataUnsafe?.user
-				// const response = await fetch(
-				// 	`http://127.0.0.1:8000/api/users/${tg_user.id}`
-				// )
-				// const data = await response.json()
-				// console.log(data)
+				const response = await fetch(
+					`http://127.0.0.1:8080/api/users/${tg_user.id}`
+				)
+				const data = await response.json()
+				console.log(data)
 				this.user.id = tg_user.id
-				this.user.name = tg_user.first_name
-				// this.user.timer = data.timer
+				this.user.name = data.username
+				this.user.timer = data.timer
 				this.user.avatar = tg_user.photo_url
 			} catch (error) {
 				console.log(error)
@@ -150,6 +145,12 @@ p {
 	object-fit: cover; /* чтобы изображение заполняло контейнер */
 }
 
+.giga {
+	display: flex;
+	flex-direction: column;
+	text-align: center;
+}
+
 .userset-info-blocks {
 	display: flex;
 	justify-content: space-around;
@@ -158,12 +159,15 @@ p {
 
 .userset-info-block {
 	background-color: #555252;
-	width: 100px;
-	height: 50px;
+	width: 150px;
+	height: 60px;
 	border-radius: 40px;
 	display: flex;
 	align-items: center;
 	justify-content: center;
+	display: flex;
+	flex-direction: column;
+	text-align: center;
 }
 
 .userset-friend-container {

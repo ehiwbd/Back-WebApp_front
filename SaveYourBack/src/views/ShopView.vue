@@ -1,5 +1,10 @@
 <template>
 	<div class="shop-container">
+		<div class="money-icon">
+			<img src="../assets/Money_icon.svg" alt="" />
+			<span style="color: aliceblue">{{ coins }}</span>
+		</div>
+
 		<svg
 			class="shop-icon"
 			width="66"
@@ -34,6 +39,7 @@ export default {
 	name: 'ShopView',
 	data() {
 		return {
+			coins: '',
 			products: [
 				{
 					id: 1,
@@ -82,6 +88,24 @@ export default {
 				},
 			],
 		}
+	},
+	async mounted() {
+		await this.fetchMoneyCnt()
+	},
+	methods: {
+		async fetchMoneyCnt() {
+			try {
+				const tg_user = window.Telegram.WebApp.initDataUnsafe?.user
+				const response = await fetch(
+					`http://127.0.0.1:8080/api/users/${tg_user.id}`
+				)
+				const data = await response.json()
+				console.log(data)
+				this.coins = data.coins
+			} catch (error) {
+				console.log(error)
+			}
+		},
 	},
 }
 </script>
@@ -160,5 +184,15 @@ export default {
 	font-size: 16px;
 	border-radius: 5px;
 	cursor: pointer;
+}
+
+.money-icon {
+	position: absolute;
+	top: 15px;
+	right: 55px;
+	display: flex;
+	align-items: center;
+	flex-direction: column;
+	gap: 5px;
 }
 </style>
