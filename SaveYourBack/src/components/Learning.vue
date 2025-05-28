@@ -47,7 +47,7 @@
 					>Нуу вобщем то всё! Теперь тебе осталось лишь быть честным с собой и
 					усердно стараться испольльзуя приложение как стимул развиваться</span
 				>
-				<button class="learning-btn" @click="NextStep">Начнем!</button>
+				<button class="learning-btn" @click="closeWindow">Начнем!</button>
 			</div>
 		</div>
 	</div>
@@ -64,6 +64,9 @@ export default {
 		}
 	},
 	methods: {
+		closeWindow() {
+			this.$emit('close-pop-up')
+		},
 		NextStep() {
 			this.currentStep++
 			if (this.currentStep == 6) {

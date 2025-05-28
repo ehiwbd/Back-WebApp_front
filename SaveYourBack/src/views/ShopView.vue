@@ -109,15 +109,14 @@
 			<swiper-slide @click="ShowPreview">
 				<img
 					class="slide_img"
-					src="../assets/LoFi_Boy.png"
+					src="../assets/CyberPhunk-mid.png"
 					alt="LoFi"
 					:id="pictures.LoFi.id"
 				/>
 				<div class="lockdisplay" v-if="!updatedPictures.LoFi.is_opened">
 					<img class="lock_icon" src="../assets/Lock_icon.svg" alt="" />
 					<div class="lockdisplay_text">
-						Уровень для открытия:
-						{{ updatedPictures.LoFi.level_to_open }} Стоимость:
+						Стоимость:
 						{{ updatedPictures.LoFi.price }} монет
 					</div>
 				</div>
@@ -132,8 +131,7 @@
 				<div class="lockdisplay" v-if="!updatedPictures.JapanVibe.is_opened">
 					<img class="lock_icon" src="../assets/Lock_icon.svg" alt="" />
 					<div class="lockdisplay_text">
-						Уровень для открытия:
-						{{ updatedPictures.JapanVibe.level_to_open }} Стоимость:
+						Стоимость:
 						{{ updatedPictures.JapanVibe.price }} монет
 					</div>
 				</div>
@@ -148,8 +146,7 @@
 				<div class="lockdisplay" v-if="!updatedPictures.CyberPhunk.is_opened">
 					<img class="lock_icon" src="../assets/Lock_icon.svg" alt="" />
 					<div class="lockdisplay_text">
-						Уровень для открытия:
-						{{ updatedPictures.CyberPhunk.level_to_open }} Стоимость:
+						Стоимость:
 						{{ updatedPictures.CyberPhunk.price }} монет
 					</div>
 				</div></swiper-slide
@@ -163,8 +160,7 @@
 				<div class="lockdisplay" v-if="!updatedPictures.SynthWave.is_opened">
 					<img class="lock_icon" src="../assets/Lock_icon.svg" alt="" />
 					<div class="lockdisplay_text">
-						Уровень для открытия:
-						{{ updatedPictures.SynthWave.level_to_open }} Стоимость:
+						Стоимость:
 						{{ updatedPictures.SynthWave.price }} монет
 					</div>
 				</div>
@@ -399,7 +395,7 @@ export default {
 						picture_id: picture.id,
 					}),
 				})
-				this.openedPictures = [...this.openedPictures, picture.id]
+
 				await this.fetchOpenedPictures() // Обновляем данные
 				alert('Картинка успешно куплена!')
 
@@ -460,7 +456,7 @@ export default {
 	align-items: center;
 	justify-content: center;
 	position: absolute;
-	right: 150px;
+	right: 100px;
 }
 
 .money_count {

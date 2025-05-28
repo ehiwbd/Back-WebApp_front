@@ -1,6 +1,6 @@
 <template>
 	<div class="home-container">
-		<PopUpReq />
+		<PopUpReq v-if="openPopUp" @close-pop-up="handlePopUpClose" />
 		<New_Level v-if="openNewLevel" @close="handleNewLevelClose" />
 		<img :src="imageSrc" class="home-image" />
 
@@ -53,18 +53,39 @@ export default {
 	},
 	data() {
 		return {
+			openPopUp: true,
 			openNewLevel: false,
 			Progress: { progress: 0 },
-			value: 5,
-			imageSrc: '', // путь к картинке
+			value: 0,
+			imageSrc: '',
 			items: {
-				1: '/assets/Japan-DNnXEsqc.png',
-				2: '/assets/CyberPhunk-CmrR5ov6.png',
-				3: '/assets/SynthWave_Girl-DuPdRgqQ.png',
+				0: {
+					top_form: '/assets/LoFi_Boy-D4gghZ9P.png',
+					middle_form: '/assets/lo-fi-mid-BjoOkaQc.png',
+					tired_form: '/assets/lo-fi-tired-BL17P5AC.png',
+				},
+				1: {
+					top_form: '/assets/Japan-DNnXEsqc.png',
+					middle_form: '/assets/Japan-mid-BGtHZjKw.png',
+					tired_form: '/assets/Japan-tired-COVxh460.png',
+				},
+				2: {
+					top_form: '/assets/CyberPhunk-CmrR5ov6.png',
+					middle_form: '/assets/CyberPhunk-mid-CUvhJwWI.png',
+					tired_form: '/assets/CyberPhunk-tired-oeY9wBRJ.png',
+				},
+				3: {
+					top_form: '/assets/SynthWave_Girl-DuPdRgqQ.png',
+					middle_form: '/assets/SynthWave-mid-BnimRQWg.png',
+					tired_form: '/assets/SytnthWave-tired-dH8NielO.png',
+				},
 			},
 		}
 	},
 	methods: {
+		handlePopUpClose() {
+			this.openPopUp = false
+		},
 		handleNewLevelClose() {
 			this.openNewLevel = false
 		},
@@ -76,8 +97,16 @@ export default {
 					`http://127.0.0.1:8080/api/picture/${tg_user.id}`
 				)
 				const data = await response.json()
-				console.log(data)
-				return parseInt(data.id)
+				// Проверяем, что data.id существует и не null/undefined
+				if (data && typeof data.id !== 'undefined' && data.id !== null) {
+					console.log('Picture data:', data)
+					return parseInt(data.id)
+				}
+				console.error(
+					'Ошибка: ID картинки не получен от API или некорректен.',
+					data
+				)
+				return null // Возвращаем null или другое значение по умолчанию, если ID некорректен
 			} catch (error) {
 				console.error('Ошибка при получении картинки:', error)
 			}
@@ -85,11 +114,21 @@ export default {
 		async loadUserData() {
 			try {
 				const tg_user = window.Telegram.WebApp.initDataUnsafe?.user
-				if (!tg_user?.id) return
+				if (!tg_user?.id) {
+					console.error('Telegram user ID not found in loadUserData')
+					return null // Возвращаем null, если нет ID пользователя
+				}
 				const response = await fetch(
 					`http://127.0.0.1:8080/api/users/${tg_user.id}`
 				)
+				if (!response.ok) {
+					console.error(
+						`Ошибка HTTP: ${response.status} при получении пользователя`
+					)
+					return null // Возвращаем null при ошибке HTTP
+				}
 				const data = await response.json()
+				const originalLevel = data.level_cnt
 				let hasLeveledUpInThisCheck = false
 				while (data.experience >= 100) {
 					data.experience -= 100
@@ -116,19 +155,53 @@ export default {
 					})
 				} catch (error) {
 					console.log(error)
+					// Не возвращаем data здесь, так как это внутренняя ошибка POST запроса
 				}
+				return {
+					data,
+					originalLevel,
+					hasLeveledUpInThisCheck,
+				} // Возвращаем данные пользователя
 			} catch (error) {
 				console.error('Ошибка при получении пользователя:', error)
+				return null // Возвращаем null при других ошибках
 			}
 		},
 	},
 	async mounted() {
-		await this.loadUserData()
+		const result = await this.loadUserData()
+
+		if (!result) {
+			this.imageSrc = require('@/assets/LoFi_Boy-D4gghZ9P.png')
+			return
+		}
+
+		const { data, originalLevel } = result
 		const picId = await this.getPicture()
-		if (picId && this.items[picId]) {
-			this.imageSrc = this.items[picId]
+
+		// Для отладки
+		console.log('Original level:', originalLevel)
+		console.log('Current level:', data.level_cnt)
+		console.log('Picture ID:', picId)
+		if (data && typeof data.level_cnt !== 'undefined') {
+			// Проверяем, что picId это число и существует в items
+			console.log('asadadasdasdasdasdasdasdasd')
+			console.log(originalLevel, typeof originalLevel)
+			if (originalLevel < 3) {
+				this.imageSrc = this.items[picId].tired_form
+			} else if (originalLevel < 10) {
+				console.log('qwerrwerwedfwer')
+				console.log('Using tired form')
+				this.imageSrc = this.items[picId].middle_form
+				console.log(this.imageSrc)
+			} else {
+				this.imageSrc = this.items[picId].top_form
+			}
 		} else {
 			this.imageSrc = '/assets/LoFi_Boy-D4gghZ9P.png'
+			console.error(
+				'Не удалось загрузить данные пользователя или picId, используется изображение по умолчанию.'
+			)
 		}
 	},
 }

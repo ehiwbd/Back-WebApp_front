@@ -61,8 +61,8 @@ export default {
 			this.showPopup = false
 		},
 		handleLearningFinish() {
-			document.getElementsByClassName('popup-learning')[0].style.display =
-				'hidden'
+			this.showLearning = false
+			this.$emit('close-pop-up') // пробрасываем наверх в HomeView
 		},
 	},
 }
@@ -84,7 +84,11 @@ export default {
 				<button class="popup-btn" @click="createCharacter">Создать</button>
 			</div>
 		</div>
-		<Learning class="popup-learning" v-if="showLearning" />
+		<Learning
+			class="popup-learning"
+			v-if="showLearning"
+			@close-pop-up="handleLearningFinish"
+		/>
 	</div>
 </template>
 
