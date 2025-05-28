@@ -1,12 +1,17 @@
 <script>
+import Learning from '../components/Learning.vue'
 export default {
 	name: 'PopUpReq',
 	data() {
 		return {
 			characterName: '',
+			showLearning: false,
+			showPopup: true,
 		}
 	},
-
+	components: {
+		Learning,
+	},
 	async mounted() {
 		const tg_user = window.Telegram.WebApp.initDataUnsafe?.user
 		if (!tg_user?.id) return
@@ -49,11 +54,14 @@ export default {
 					timer: 0,
 					experience: 0,
 					coins: 10,
-					username: this.characterName
+					username: this.characterName,
 				}),
 			})
-
-			document.getElementsByClassName('popup-container')[0].style.visibility =
+			this.showLearning = true
+			this.showPopup = false
+		},
+		handleLearningFinish() {
+			document.getElementsByClassName('popup-learning')[0].style.display =
 				'hidden'
 		},
 	},
@@ -61,23 +69,26 @@ export default {
 </script>
 
 <template>
-	<div class="popup-container">
-		<div class="popup-shadow"></div>
-		<div class="popup">
-			<p class="popup-text">Добро пожаловать!</p>
-			<span class="popup-goal">Укажите имя персонажа</span>
-			<input
-				v-model.lazy="characterName"
-				class="popup-input"
-				type="text"
-				placeholder="Имя персонажа"
-			/>
-			<button class="popup-btn" @click="createCharacter">Создать</button>
+	<div>
+		<div class="popup-container">
+			<div class="popup-shadow" v-if="showPopup"></div>
+			<div class="popup" v-if="showPopup">
+				<p class="popup-text">Добро пожаловать!</p>
+				<span class="popup-goal">Укажите имя персонажа</span>
+				<input
+					v-model.lazy="characterName"
+					class="popup-input"
+					type="text"
+					placeholder="Имя персонажа"
+				/>
+				<button class="popup-btn" @click="createCharacter">Создать</button>
+			</div>
 		</div>
+		<Learning class="popup-learning" v-if="showLearning" />
 	</div>
 </template>
 
-<style>
+<style scoped>
 .popup {
 	width: 300px;
 	height: 300px;
@@ -102,6 +113,12 @@ export default {
 .popup-text {
 	font-size: 24;
 	margin-top: 18px;
+}
+
+.popup-learning {
+	position: absolute;
+	top: 0;
+	left: 0;
 }
 
 .popup-input {

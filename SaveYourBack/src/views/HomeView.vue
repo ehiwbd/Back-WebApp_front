@@ -1,11 +1,13 @@
 <template>
 	<div class="home-container">
 		<PopUpReq />
-		<img src="../assets/Japan.png" class="home-image" /><img />
+		<New_Level v-if="openNewLevel" @close="handleNewLevelClose" />
+		<img :src="imageSrc" class="home-image" />
+
 		<div class="progress-container">
 			<div class="progress-icon">
 				<span class="progress-icon-text">Lvl</span>
-				<span class="progress-icon-value">{{ this.value }}</span>
+				<span class="progress-icon-value">{{ value }}</span>
 			</div>
 			<div class="progress-bar">
 				<div
@@ -14,6 +16,7 @@
 				></div>
 			</div>
 		</div>
+
 		<div class="home-content">
 			<div class="timeSet">
 				<router-link to="/timeset" class="timeSetBtn">
@@ -40,22 +43,46 @@
 
 <script>
 import PopUpReq from '../components/PopUpReq.vue'
+import New_Level from '../components/NewLevel.vue'
 
 export default {
 	name: 'HomeView',
-	data() {
-		return {
-			Progress: { progress: 0 }, // Начинаем с 0
-			value: 5,
-		}
-	},
 	components: {
 		PopUpReq,
+		New_Level,
 	},
-
-	async mounted() {
-		// Анимируем прогресс после загрузки компонента
-		setTimeout(async () => {
+	data() {
+		return {
+			openNewLevel: false,
+			Progress: { progress: 0 },
+			value: 5,
+			imageSrc: '', // путь к картинке
+			items: {
+				1: '/assets/Japan-DNnXEsqc.png',
+				2: '/assets/CyberPhunk-CmrR5ov6.png',
+				3: '/assets/SynthWave_Girl-DuPdRgqQ.png',
+			},
+		}
+	},
+	methods: {
+		handleNewLevelClose() {
+			this.openNewLevel = false
+		},
+		async getPicture() {
+			try {
+				const tg_user = window.Telegram.WebApp.initDataUnsafe?.user
+				if (!tg_user?.id) return
+				const response = await fetch(
+					`http://127.0.0.1:8080/api/picture/${tg_user.id}`
+				)
+				const data = await response.json()
+				console.log(data)
+				return parseInt(data.id)
+			} catch (error) {
+				console.error('Ошибка при получении картинки:', error)
+			}
+		},
+		async loadUserData() {
 			try {
 				const tg_user = window.Telegram.WebApp.initDataUnsafe?.user
 				if (!tg_user?.id) return
@@ -63,35 +90,64 @@ export default {
 					`http://127.0.0.1:8080/api/users/${tg_user.id}`
 				)
 				const data = await response.json()
+				let hasLeveledUpInThisCheck = false
 				while (data.experience >= 100) {
 					data.experience -= 100
 					data.level_cnt += 1
+					hasLeveledUpInThisCheck = true
+				}
+				if (hasLeveledUpInThisCheck) {
+					this.openNewLevel = true
 				}
 				this.Progress.progress = data.experience
 				this.value = data.level_cnt
+				try {
+					await fetch(`http://127.0.0.1:8080/api/users/`, {
+						method: 'POST',
+						headers: { 'Content-Type': 'application/json' },
+						body: JSON.stringify({
+							tg_id: tg_user.id,
+							timer: data.timer,
+							coins: data.coins,
+							experience: data.experience,
+							level_cnt: data.level_cnt,
+							username: tg_user.username,
+						}),
+					})
+				} catch (error) {
+					console.log(error)
+				}
 			} catch (error) {
-				console.error(error) // Use console.error for errors
+				console.error('Ошибка при получении пользователя:', error)
 			}
-		}, 200) // Небольшая задержка для гарантии применения начальных стилей
+		},
+	},
+	async mounted() {
+		await this.loadUserData()
+		const picId = await this.getPicture()
+		if (picId && this.items[picId]) {
+			this.imageSrc = this.items[picId]
+		} else {
+			this.imageSrc = '/assets/LoFi_Boy-D4gghZ9P.png'
+		}
 	},
 }
 </script>
 
 <style scoped>
 .home-container {
-	height: 100vh; /* Занимает всю высоту экрана */
+	height: 100vh;
 	display: flex;
-	flex-direction: column; /* Размещаем контент вертикально */
+	flex-direction: column;
 	align-items: flex-end;
 	justify-content: center;
-	position: relative; /* Делаем контейнер относительным, чтобы позиционировать элементы внутри него */
-	overflow: hidden; /* Скрываем все, что выходит за пределы контейнера */
+	position: relative;
+	overflow: hidden;
 }
 
 .home-image {
 	width: 100%;
 	height: 100%;
-	object-fit: cover;
 	position: absolute;
 	top: 0;
 	left: 0;
@@ -103,8 +159,8 @@ export default {
 	flex-direction: column;
 	align-items: center;
 	justify-content: center;
-	z-index: 1; /* Помещаем контент поверх изображения */
-	gap: 20px; /* Добавляем отступ между кнопками */
+	z-index: 1;
+	gap: 20px;
 }
 
 .timeSetBtn {
@@ -136,10 +192,10 @@ export default {
 
 .progress-fill {
 	height: 100%;
-	background-color: #4caf50; /* Зеленый */
-	width: 0%; /* Начинаем с 0% */
+	background-color: #4caf50;
+	width: 0%;
 	transition: width 2s ease-in-out;
-	border-radius: 10px; /* Добавим скругление */
+	border-radius: 10px;
 }
 
 .progress-icon {
@@ -155,7 +211,6 @@ export default {
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	display: flex;
 	flex-direction: column;
 }
 

@@ -19,7 +19,9 @@
 				</svg>
 			</div>
 			<div class="time-form">
-				<button class="timebtn tenminbtn" @click="setTimer(1)">10</button>
+				<button class="timebtn tenminbtn" @click="setTimer(0)">
+					Оключить таймер
+				</button>
 				<button class="timebtn fifteenminbtn" @click="setTimer(15)">15</button>
 				<button class="timebtn twentyminbtn" @click="setTimer(20)">20</button>
 				<button class="timebtn thirtyminbtn" @click="setTimer(30)">30</button>
@@ -61,7 +63,6 @@ export default {
 		},
 
 		async CreateTimer(minutes) {
-			if (minutes <= 0) return
 			try {
 				const tg_user = window.Telegram.WebApp.initDataUnsafe?.user
 				const response = await fetch(
