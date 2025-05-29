@@ -45,6 +45,23 @@
 import PopUpReq from '../components/PopUpReq.vue'
 import New_Level from '../components/NewLevel.vue'
 
+// Импортируем изображения как модули — Vite сам вставит правильные пути
+import loFiTop from '../assets/LoFi_Boy.png'
+import loFiMid from '../assets/lo-fi-mid.png'
+import loFiTired from '../assets/lo-fi-tired.png'
+
+import japanTop from '../assets/Japan.png'
+import japanMid from '../assets/Japan-mid.png'
+import japanTired from '../assets/Japan-tired.png'
+
+import cyberTop from '../assets/CyberPhunk.png'
+import cyberMid from '../assets/CyberPhunk-mid.png'
+import cyberTired from '../assets/CyberPhunk-tired.png'
+
+import synthTop from '../assets/SynthWave_Girl.png'
+import synthMid from '../assets/SynthWave-mid.png'
+import synthTired from '../assets/SytnthWave-tired.png'
+
 export default {
 	name: 'HomeView',
 	components: {
@@ -60,24 +77,24 @@ export default {
 			imageSrc: '',
 			items: {
 				0: {
-					top_form: '/assets/LoFi_Boy-D4gghZ9P.png',
-					middle_form: '/assets/lo-fi-mid-BjoOkaQc.png',
-					tired_form: '/assets/lo-fi-tired-BL17P5AC.png',
+					top_form: loFiTop,
+					middle_form: loFiMid,
+					tired_form: loFiTired,
 				},
 				1: {
-					top_form: '/assets/Japan-DNnXEsqc.png',
-					middle_form: '/assets/Japan-mid-BGtHZjKw.png',
-					tired_form: '/assets/Japan-tired-COVxh460.png',
+					top_form: japanTop,
+					middle_form: japanMid,
+					tired_form: japanTired,
 				},
 				2: {
-					top_form: '/assets/CyberPhunk-CmrR5ov6.png',
-					middle_form: '/assets/CyberPhunk-mid-CUvhJwWI.png',
-					tired_form: '/assets/CyberPhunk-tired-oeY9wBRJ.png',
+					top_form: cyberTop,
+					middle_form: cyberMid,
+					tired_form: cyberTired,
 				},
 				3: {
-					top_form: '/assets/SynthWave_Girl-DuPdRgqQ.png',
-					middle_form: '/assets/SynthWave-mid-BnimRQWg.png',
-					tired_form: '/assets/SytnthWave-tired-dH8NielO.png',
+					top_form: synthTop,
+					middle_form: synthMid,
+					tired_form: synthTired,
 				},
 			},
 		}
@@ -97,16 +114,14 @@ export default {
 					`http://127.0.0.1:8080/api/picture/${tg_user.id}`
 				)
 				const data = await response.json()
-				// Проверяем, что data.id существует и не null/undefined
 				if (data && typeof data.id !== 'undefined' && data.id !== null) {
-					console.log('Picture data:', data)
 					return parseInt(data.id)
 				}
 				console.error(
 					'Ошибка: ID картинки не получен от API или некорректен.',
 					data
 				)
-				return null // Возвращаем null или другое значение по умолчанию, если ID некорректен
+				return null
 			} catch (error) {
 				console.error('Ошибка при получении картинки:', error)
 			}
@@ -116,7 +131,7 @@ export default {
 				const tg_user = window.Telegram.WebApp.initDataUnsafe?.user
 				if (!tg_user?.id) {
 					console.error('Telegram user ID not found in loadUserData')
-					return null // Возвращаем null, если нет ID пользователя
+					return null
 				}
 				const response = await fetch(
 					`http://127.0.0.1:8080/api/users/${tg_user.id}`
@@ -125,7 +140,7 @@ export default {
 					console.error(
 						`Ошибка HTTP: ${response.status} при получении пользователя`
 					)
-					return null // Возвращаем null при ошибке HTTP
+					return null
 				}
 				const data = await response.json()
 				const originalLevel = data.level_cnt
@@ -155,59 +170,74 @@ export default {
 					})
 				} catch (error) {
 					console.log(error)
-					// Не возвращаем data здесь, так как это внутренняя ошибка POST запроса
 				}
 				return {
 					data,
 					originalLevel,
 					hasLeveledUpInThisCheck,
-				} // Возвращаем данные пользователя
+				}
 			} catch (error) {
 				console.error('Ошибка при получении пользователя:', error)
-				return null // Возвращаем null при других ошибках
+				return null
 			}
 		},
 	},
 	async mounted() {
 		const result = await this.loadUserData()
-
-		if (!result) {
-			this.imageSrc = require('@/assets/LoFi_Boy-D4gghZ9P.png')
-			return
-		}
-
 		const { data, originalLevel } = result
-		const picId = await this.getPicture()
+		if (this.openPopUp) {
+			const tg_user = window.Telegram.WebApp.initDataUnsafe?.user
+			try {
+				await fetch(`http://127.0.0.1:8080/api/picture/`, {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({
+						id: 0,
+						tg_id: tg_user.id,
+						level_to_open: 0,
+						price: 0,
+						is_opened: true,
+					}),
+				})
 
-		// Для отладки
-		console.log('Original level:', originalLevel)
-		console.log('Current level:', data.level_cnt)
-		console.log('Picture ID:', picId)
-		if (data && typeof data.level_cnt !== 'undefined') {
-			// Проверяем, что picId это число и существует в items
-			console.log('asadadasdasdasdasdasdasdasd')
-			console.log(originalLevel, typeof originalLevel)
+				await fetch(`http://127.0.0.1:8080/api/pictures/opened`, {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({
+						tg_id: tg_user.id,
+						picture_id: 0,
+					}),
+				})
+			} catch (error) {
+				console.log('Ошибка при покупке:', error)
+			}
+		}
+		const picId = await this.getPicture()
+		console.log('это дата', picId)
+		if (
+			data &&
+			typeof data.level_cnt !== 'undefined' &&
+			typeof picId !== 'undefined' &&
+			this.items[picId]
+		) {
 			if (originalLevel < 3) {
 				this.imageSrc = this.items[picId].tired_form
 			} else if (originalLevel < 10) {
-				console.log('qwerrwerwedfwer')
-				console.log('Using tired form')
 				this.imageSrc = this.items[picId].middle_form
-				console.log(this.imageSrc)
 			} else {
 				this.imageSrc = this.items[picId].top_form
 			}
 		} else {
-			this.imageSrc = '/assets/LoFi_Boy-D4gghZ9P.png'
+			this.imageSrc = loFiTop
 			console.error(
-				'Не удалось загрузить данные пользователя или picId, используется изображение по умолчанию.'
+				'Не удалось загрузить нужную картинку, используется дефолт.'
 			)
 		}
 	},
 }
 </script>
 
-<style scoped>
+<style>
 .home-container {
 	height: 100vh;
 	display: flex;
@@ -219,12 +249,13 @@ export default {
 }
 
 .home-image {
-	width: 100%;
-	height: 100%;
+	width: 100% !important;
+	height: 100% !important;
 	position: absolute;
 	top: 0;
 	left: 0;
 	z-index: 0;
+	object-fit: fill;
 }
 
 .home-content {

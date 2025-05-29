@@ -109,7 +109,7 @@
 			<swiper-slide @click="ShowPreview">
 				<img
 					class="slide_img"
-					src="../assets/CyberPhunk-mid.png"
+					src="../assets/LoFi_Boy.png"
 					alt="LoFi"
 					:id="pictures.LoFi.id"
 				/>
@@ -203,19 +203,19 @@ export default {
 				JapanVibe: {
 					id: 1,
 					level_to_open: 6,
-					price: 100,
+					price: 300,
 					is_opened: false,
 				},
 				CyberPhunk: {
 					id: 2,
 					level_to_open: 6,
-					price: 400,
+					price: 1000,
 					is_opened: false,
 				},
 				SynthWave: {
 					id: 3,
 					level_to_open: 9,
-					price: 800,
+					price: 3500,
 					is_opened: false,
 				},
 			},
